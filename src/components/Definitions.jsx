@@ -1,13 +1,15 @@
-<dl>
-    <dt>one</dt>
-    <dd>two</dd>
-    <dt>another term</dt>
-    <dd>another description</dd>
-</dl>
+import React from 'react';
 
-<dl>
-    <dt>Coffee</dt>
-    <dd>Black hot drink</dd>
-    <dt>Milk</dt>
-    <dd>White cold drink</dd>
-</dl>
+function Definitions({data}) {
+    return (
+        <dl>
+            {data.map(({id, dt, dd})=>(
+                <React.Fragment key={id}>
+                    <dt>{dt}</dt>
+                    <dd>{dd}</dd>
+                </React.Fragment>
+            ))}
+        </dl>
+    );
+}
+export default Definitions;
