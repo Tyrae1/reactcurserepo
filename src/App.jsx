@@ -41,15 +41,19 @@ function App() {
         fetch(`https://jsonplaceholder.typicode.com/photos?albumId=${selectedAlbumId}`)
             .then(r => (r.ok ? r.json() : Promise.reject(new Error('Failed to load photos'))))
             .then(data => {
-                console.log('Fetched photos raw:', data?.length, data?.[0]);
                 if (cancelled) return;
+                const fixUrl = (url) => {
+                    const m = url.match(/via\.placeholder\.com\/(\d+)(?:\/([0-9a-fA-F]{3,6}))?/);
+                    if (!m) return url;
+                    const size = m[1];
+                    const color = m[2] || 'cccccc';
+                    return `https://placehold.co/${size}x${size}/${color}`;
+                }
                 const patched = data.map(p => ({
                     ...p,
-                    thumbnailUrl: p.thumbnailUrl.replace('via.placeholder.com', 'placehold.co'),
-                    url: p.url.replace('via.placeholder.com', 'placehold.co'),
+                    thumbnailUrl: fixUrl(p.thumbnailUrl),
+                    url: fixUrl(p.url),
                 }));
-                console.log('patched thumb:', patched?.[0]?.thumbnailUrl);
-
                 setPhotosByAlbum(prev => ({...prev, [selectedAlbumId]: patched}));
             })
             .catch(err => !cancelled && setPhotosError(err.message))
