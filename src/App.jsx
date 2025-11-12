@@ -12,63 +12,104 @@ function App() {
     const [photosByAlbum, setPhotosByAlbum] = useState({});
     const [photosLoading, setPhotosLoading] = useState(false);
     const [photosError, setPhotosError] = useState(null);
+    const [albumQuery, setAlbumQuery] = useState('');
+    const [albumIdFilter, setAlbumIdFilter] = useState('');
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(20);
+
     const currentPhotos = selectedAlbumId ? photosByAlbum[selectedAlbumId] : [];
+    const totalPhotos = currentPhotos?.length || 0;
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const visiblePhotos = currentPhotos ? currentPhotos.slice(start, end) : [];
+
 
     useEffect(() => {
-        let cancelled = false;
-        setAlbumLoading(true);
-        setAlbumError(null);
+        const controller = new AbortController();
 
-        fetch(`https://jsonplaceholder.typicode.com/albums`)
-            .then(r => (r.ok ? r.json() : Promise.reject(new Error('Failed to load album'))))
-            .then(data => {
-                if (cancelled) return;
+        async function loadAlbums() {
+            try {
+                setAlbumLoading(true);
+                setAlbumError(null);
+                const res = await fetch("https://jsonplaceholder.typicode.com/albums", {
+                    signal: controller.signal,
+                });
+                if (!res.ok) throw new Error("Failed to load albums");
+                const data = await res.json();
                 setAlbums(data);
                 if (data.length && selectedAlbumId === null) {
                     setSelectedAlbumId(Number(data[0].id));
                 }
-            })
-            .catch(err => !cancelled && setAlbumError(err.message))
-            .finally(() => !cancelled && setAlbumLoading(false));
-        return () => {cancelled = true;};
+            } catch (err) {
+                if (err.name !== "AbortError") setAlbumError(err.message);
+            } finally {
+                setAlbumLoading(false);
+            }
+        }
+        loadAlbums();
+        return () => controller.abort();
     }, []);
+
     useEffect(() => {
-        if (selectedAlbumId === null) return;
+        if (selectedAlbumId == null) return;
         if (photosByAlbum[selectedAlbumId]) return;
-        let cancelled = false;
-        setPhotosLoading(true);
-        setPhotosError(null);
-        fetch(`https://jsonplaceholder.typicode.com/photos?albumId=${selectedAlbumId}`)
-            .then(r => (r.ok ? r.json() : Promise.reject(new Error('Failed to load photos'))))
-            .then(data => {
-                if (cancelled) return;
+        const controller = new AbortController();
+        async function loadPhotos() {
+            try {
+                setPhotosLoading(true);
+                setPhotosError(null);
+                const res = await fetch( `https://jsonplaceholder.typicode.com/photos?albumId=${selectedAlbumId}`, {signal: controller.signal });
+                if (!res.ok) throw new Error("Failed to load photos");
+                const data = await res.json();
                 const fixUrl = (url) => {
                     const m = url.match(/via\.placeholder\.com\/(\d+)(?:\/([0-9a-fA-F]{3,6}))?/);
                     if (!m) return url;
                     const size = m[1];
-                    const color = m[2] || 'cccccc';
-                    return `https://placehold.co/${size}x${size}/${color}`;
-                }
-                const patched = data.map(p => ({
+                    const color = m[2] || "cccccc";
+                    return `https://placehold.co/${size}x${size}/${color}.png`;
+                };
+                const patched = data.map((p) => ({
                     ...p,
                     thumbnailUrl: fixUrl(p.thumbnailUrl),
                     url: fixUrl(p.url),
                 }));
-                setPhotosByAlbum(prev => ({...prev, [selectedAlbumId]: patched}));
-            })
-            .catch(err => !cancelled && setPhotosError(err.message))
-            .finally(() => !cancelled && setPhotosLoading(false));
-        return () => {cancelled = true;}
-    }, [selectedAlbumId, photosByAlbum]);
+                setPhotosByAlbum(prev => ({
+                    ...prev,
+                    [selectedAlbumId]: patched,
+                }));
+            } catch (err) {
+                if (err.name !== "AbortError") setPhotosError(err.message);
+            } finally {
+                setPhotosLoading(false);
+            }
+        }
+        loadPhotos();
+        return () => controller.abort();
+    }, [selectedAlbumId]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [selectedAlbumId]);
+
+    const filteredAlbums = albums.filter( a => {
+        const byTitle = a.title.toLowerCase().includes(albumQuery.toLowerCase());
+        const byId = albumIdFilter ? a.id === Number(albumIdFilter) : true;
+        return byTitle && byId;
+    });
+
 
     return (
         <Container style={{height:'100vh'}}>
             <AppHeader />
             <Container>
             <AlbumSidebar
-                albums={albums}
+                albums={filteredAlbums}
                 activeId={selectedAlbumId}
                 onSelect={(id) => setSelectedAlbumId(Number(id))}
+                query = {albumQuery}
+                onQueryChange = {setAlbumQuery}
+                idFilter = {albumIdFilter}
+                onIdFilterChange = {setAlbumIdFilter}
                 loading={albumLoading}
                 error={albumError}
             />
@@ -80,9 +121,13 @@ function App() {
                     </h3>
                     {selectedAlbumId && (
                         <PhotoGrid
-                            photos={currentPhotos}
+                            photos={visiblePhotos}
                             loading={photosLoading}
                             error={photosError}
+                            page={page}
+                            pageSize={pageSize}
+                            total={totalPhotos}
+                            onPageChange={setPage}
                             />
                     )}
                     </Content>
