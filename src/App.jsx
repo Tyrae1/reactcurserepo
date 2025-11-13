@@ -3,6 +3,7 @@ import {useState, useEffect} from "react";
 import AppHeader from "../Components/AppHeader.jsx";
 import AlbumSidebar from "../Components/AlbumSidebar";
 import PhotoGrid from "../Components/PhotoGrid";
+import PhotoModal from "../Components/PhotoModal";
 
 function App() {
     const [albums, setAlbums] = useState([]);
@@ -23,6 +24,8 @@ function App() {
     const end = start + pageSize;
     const visiblePhotos = currentPhotos ? currentPhotos.slice(start, end) : [];
 
+    const [modalOpen, setModalOpen] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(0);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -91,12 +94,31 @@ function App() {
         setPage(1);
     }, [selectedAlbumId]);
 
+    useEffect(() => {
+        setActiveIndex(0);
+        setModalOpen(false);
+    }, [selectedAlbumId]);
+
     const filteredAlbums = albums.filter( a => {
         const byTitle = a.title.toLowerCase().includes(albumQuery.toLowerCase());
         const byId = albumIdFilter ? a.id === Number(albumIdFilter) : true;
         return byTitle && byId;
     });
 
+    const handlePhotoClick = (indexInPage) => {
+        setActiveIndex(start + indexInPage);
+        setModalOpen(true);
+    };
+
+    const handleNext = () => {
+        if (!totalPhotos) return;
+        setActiveIndex(prev => (prev + 1) % totalPhotos);
+    };
+
+    const handlePrev = () => {
+      if (!totalPhotos) return;
+      setActiveIndex(prev => (prev - 1 + totalPhotos) % totalPhotos);
+    };
 
     return (
         <Container style={{height:'100vh'}}>
@@ -128,6 +150,19 @@ function App() {
                             pageSize={pageSize}
                             total={totalPhotos}
                             onPageChange={setPage}
+                            onPhotoClick={handlePhotoClick}
+                            />
+                    )}
+                    {modalOpen && currentPhotos && currentPhotos.length > 0 && (
+                        <PhotoModal
+                            open={modalOpen}
+                            photos={currentPhotos[activeIndex]}
+                            title={currentPhotos[activeIndex]?.title}
+                            index={activeIndex}
+                            total={currentPhotos.length}
+                            onClose={() => setModalOpen(false)}
+                            onNext={handleNext}
+                            onPrev={handlePrev}
                             />
                     )}
                     </Content>

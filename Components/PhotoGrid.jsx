@@ -1,6 +1,6 @@
 import {Message, Placeholder, Pagination, Loader} from 'rsuite';
 
-export default function PhotoGrid({photos, loading, error, page, pageSize, total, onPageChange}) {
+export default function PhotoGrid({photos, loading, error, page, pageSize, total, onPageChange, onPhotoClick}) {
     if (error) return <Message type="error" showIcon>{error}</Message>;
     if (loading) {
         const skeleton = Array.from({length: 12});
@@ -22,11 +22,30 @@ export default function PhotoGrid({photos, loading, error, page, pageSize, total
     return (
         <div>
         <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 12}}>
-            {photos.map(p=> (
-                <div key={p.id} style={{border: '1px solid #eee', padding: 8, borderRadius: 8}}>
-                <img src={p.thumbnailUrl} alt={p.title} style={{width:'100%', display: 'block'}} referrerPolicy="no-referrer"/>
-                    <div style={{fontSize: 12, marginTop: 6}}>{p.title}</div>
-                </div>
+            {photos.map((p, i) => (
+                <button
+                    key={p.id}
+                    onClick={() => onPhotoClick(i)}
+                    style={{
+                        border:'1px solid #eee',
+                        padding:8,
+                        borderRadius:8,
+                        background:'#fff',
+                        cursor:'pointer',
+                        textAlign:'left',
+                        outline:'none',
+                        boxShadow:'none',
+                        appearance:'none'
+                }}
+                >
+                    <img
+                        src={p.thumbnailUrl}
+                        alt={p.title}
+                        style={{width:'100%', display:'block'}}
+                        referrerPolicy="no-referrer"
+                    />
+                    <div style={{fontSize:12, marginTop:6}}>{p.title}</div>
+                </button>
             ))}
         </div>
     {total > pageSize && (
