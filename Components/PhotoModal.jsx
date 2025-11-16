@@ -11,7 +11,7 @@ export default function PhotoModal({open, photo, title, total, index, onClose, o
             </Modal.Header>
             <Modal.Body style={{display: 'flex', justifyContent: 'center'}}>
                 {photo && (
-                <img
+                    <img
                     src={photo.url}
                     alt={title}
                     style={{maxWidth: '100%', maxHeight: '70vh', display: 'block'}}
