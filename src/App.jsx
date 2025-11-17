@@ -56,26 +56,27 @@ function App() {
     useEffect(() => {
         if (selectedAlbumId == null) return;
         if (photosByAlbum[selectedAlbumId]) return;
+        
         const controller = new AbortController();
+        
         async function loadPhotos() {
             try {
                 setPhotosLoading(true);
                 setPhotosError(null);
-                const res = await fetch( `https://jsonplaceholder.typicode.com/photos?albumId=${selectedAlbumId}`, {signal: controller.signal });
+                
+                const res = await fetch( `https://jsonplaceholder.typicode.com/photos?albumId=${selectedAlbumId}`, 
+                    {signal: controller.signal }
+                );
                 if (!res.ok) throw new Error("Failed to load photos");
+                
                 const data = await res.json();
-                const fixUrl = (url) => {
-                    const m = url.match(/via\.placeholder\.com\/(\d+)(?:\/([0-9a-fA-F]{3,6}))?/);
-                    if (!m) return url;
-                    const size = m[1];
-                    const color = m[2] || "cccccc";
-                    return `https://placehold.co/${size}x${size}/${color}.png`;
-                };
-                const patched = data.map((p) => ({
-                    ...p,
-                    thumbnailUrl: fixUrl(p.thumbnailUrl),
-                    url: fixUrl(p.url),
+
+                const patched = data.map(item => ({
+                    ...item,
+                    thumbnailUrl: item.thumbnailUrl.replace("https://via.placeholder.com", "https://dummyimage.com"),
+                    url: item.url.replace("https://via.placeholder.com", "https://dummyimage.com")
                 }));
+
                 setPhotosByAlbum(prev => ({
                     ...prev,
                     [selectedAlbumId]: patched,
