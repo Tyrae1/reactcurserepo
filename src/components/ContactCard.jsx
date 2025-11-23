@@ -1,7 +1,10 @@
 import PropTypes from "prop-types";
 import { Card, Button } from 'react-bootstrap';
 
-export default function ContactCard({contact}) {
+export default function ContactCard({contact, onEdit, onDelete}) {
+    const handleEditClick = () => {
+        onEdit(contact);
+    };
     return (
         <Card className="mb-3">
             <Card.Body>
@@ -12,10 +15,13 @@ export default function ContactCard({contact}) {
                 </Card.Text>
 
                 <div className="d-flex gap-2">
-                    <Button variant="warning" size="sm">
+                    <Button variant="warning" size="sm" onClick={handleEditClick}>
                         Edit
                     </Button>
-                    <Button variant="danger" size="sm">
+                    <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => onDelete(contact.id)}>
                         Delete
                     </Button>
                 </div>
@@ -25,5 +31,11 @@ export default function ContactCard({contact}) {
 }
 
 ContactCard.propTypes = {
-    contact: PropTypes.object.isRequired,
+    contact: PropTypes.shape({
+        id: PropTypes.number,
+        name: PropTypes.string,
+        phone: PropTypes.string,
+        email: PropTypes.string,
+    }).isRequired,
+    onEdit: PropTypes.func.isRequired,
 }
