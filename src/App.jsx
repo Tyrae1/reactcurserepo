@@ -1,7 +1,8 @@
 import {useEffect, useState} from 'react';
-import { Container, Button } from 'react-bootstrap';
+import { Container, Button, Form } from 'react-bootstrap';
 import ContactList from './components/ContactList';
 import ContactFormModal from './components/ContactFormModal';
+import debounce from "lodash.debounce";
 
 function App() {
     const [contacts, setContacts] = useState(() => {
@@ -22,6 +23,7 @@ function App() {
     ];
 });
 
+    const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingContact, setEditingContact] = useState(null);
 
@@ -45,7 +47,36 @@ function App() {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setEditingContact(null);
+    };
+    const handleSaveContact = (data) => {
+        if (editingContact) {
+            setContacts((prev) =>
+            prev.map((c) => (c.id === data.id ? {...c, ...data} : c)));
+        } else {
+            const newContact = {
+                ...data,
+                id: Date.now(),
+            };
+            setContacts((prev) => [newContact, ...prev]);
+        }
+        setIsModalOpen(false);
+        setEditingContact(null);
+    };
+
+    const debouncedSetSearchQuery = debounce((value) => {
+        setSearchQuery(value);
+    }, 300);
+    const handleSearchChange = (event) => {
+        debouncedSetSearchQuery(event.target.value);
     }
+    const filteredContacts = contacts.filter(contact => {
+        if (!searchQuery.trim()) return true;
+        const term = searchQuery.toLowerCase();
+        return (
+            contact.name.toLowerCase().includes(term) ||
+            contact.phone.toLowerCase().includes(term)
+        );
+    });
   return (
     <Container className="py-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
@@ -54,9 +85,15 @@ function App() {
                 Add Contact
             </Button>
         </div>
-
+        <div className="mb-3">
+            <Form.Control
+                type="text"
+                placeholder="Search by name or phone...."
+                onChange={handleSearchChange}
+                />
+        </div>
         <ContactList
-            contacts={contacts}
+            contacts={filteredContacts}
             onEdit={handleEditContact}
             onDelete={handleDeleteContact}
         />
@@ -64,6 +101,7 @@ function App() {
             show={isModalOpen}
             onClose={handleCloseModal}
             contact={editingContact}
+            onSave={handleSaveContact}
         />
     </Container>
   );
