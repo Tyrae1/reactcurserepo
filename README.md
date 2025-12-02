@@ -1,14 +1,9 @@
-Необхідно написати React APP Todo list
+Update TodoList
 
-Бібліотеки котрі треба використовувати
+Взяти за основу це ДЗ - https://lms.ithillel.ua/groups/688393473241b617f5472bbb/homeworks/691b7917725df215a2303e33
 
-- https://react-bootstrap.netlify.app/
-- https://formik.org/
-- https://www.npmjs.com/package/prop-types
-- https://www.npmjs.com/package/prop-types
+Потрібно його допрацювати, а саме: прибрати роботу з LocalStorage і замість нього прпускати масив елементів туду через редакс
 
-Працювати має аналогічно цьому можна без збереження стану після перезавантаження сторінки.
+Розібратись як зробити Persisted State через Redux.
 
-https://vladimirshaitan.github.io/TodoListForStudents/
-
-Використовувати Formik обов'язково 
+Тобто щоб після перезавантаження дані не видалялись, а потрапляли назад в Redux і звідти відмальвовувались
