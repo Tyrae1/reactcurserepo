@@ -13,56 +13,35 @@ import {
     ListGroupItem
 } from 'react-bootstrap';
 import {Formik, Form as FormikForm, Field} from 'formik';
-import {useState, useEffect} from 'react';
+import {useState} from 'react';
+import {useSelector, useDispatch} from 'react-redux';
+import {addTodo, toggleTodo, deleteTodo, clearCompleted} from "./store.js";
 import TodoItem from './Components/TodoItem.jsx'
 
 function App() {
 
-    const [todos, setTodos] = useState(() => {
-        try {
-            const saved = localStorage.getItem('todos');
-            return saved ? JSON.parse(saved) : [];
-        } catch (e) {
-            console.error("Failed to load list", e);
-            return [];
-        }
-    });
-
-    useEffect(() => {
-        localStorage.setItem('todos', JSON.stringify(todos));
-    }, [todos]);
-
+    const todos = useSelector(state => state.todoState.todos);
     const [filter, setFilter] = useState('all');
-
-    const toggleTodo = (id) => {
-        setTodos(prev =>
-        prev.map(todo =>
-        todo.id === id
-            ? {...todo, completed: !todo.completed}
-            : todo
-        )
-        );
-    };
-
-    const deleteTodo = (id) => {
-      setTodos(prev => prev.filter(todo => todo.id !== id));
-    };
-
-    const clearCompleted = () => {
-      setTodos(prev => prev.filter(todo => !todo.completed));
-    };
+    const dispatch = useDispatch();
+    const totalCount = todos.length;
+    const completedCount = todos.filter(t => t.completed).length;
+    const hasCompleted = completedCount > 0;
 
     const filteredTodos = todos.filter(todo => {
         if (filter === 'active') return !todo.completed;
         if (filter === 'completed') return todo.completed;
         return true;
     });
+    const handleToggleTodo = (id) => {
+        dispatch(toggleTodo(id));
+    };
 
-    const hasCompleted = todos.some(todo => todo.completed);
-
-    const totalCount = todos.length;
-    const completedCount = todos.filter(todo => todo.completed).length;
-
+    const handleDeleteTodo = (id) => {
+        dispatch(deleteTodo(id));
+    };
+    const handleClearCompleted = () => {
+        dispatch(clearCompleted());
+    };
   return (
     <div className="py-4 bg-light min-vh-100">
     <Container>
@@ -90,7 +69,7 @@ function App() {
                                 if (!newTodo.title) {
                                     return;
                                 }
-                                setTodos(prev => [...prev, newTodo]);
+                                dispatch(addTodo(newTodo));
                                 actions.resetForm();
                             }}
                         >
@@ -156,8 +135,8 @@ function App() {
                                     <TodoItem
                                         key={todo.id}
                                         todo={todo}
-                                        onToggle={toggleTodo}
-                                        onDelete={deleteTodo}
+                                        onToggle={() => handleToggleTodo(todo.id)}
+                                        onDelete={() => handleDeleteTodo(todo.id)}
                                         />
                                 ))
                             )}
@@ -168,7 +147,7 @@ function App() {
                                 variant="outline-danger"
                                 size="sm"
                                 disabled = {!hasCompleted}
-                                onClick={clearCompleted}
+                                onClick={handleClearCompleted}
                             >
                                 Clear completed
                             </Button>
