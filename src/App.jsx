@@ -21,6 +21,7 @@ import TodoItem from './Components/TodoItem.jsx'
 function App() {
 
     const todos = useSelector(state => state.todoState.todos);
+    console.log("todos:", todos);
     const [filter, setFilter] = useState('all');
     const dispatch = useDispatch();
     const totalCount = todos.length;
