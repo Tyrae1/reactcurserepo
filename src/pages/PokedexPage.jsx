@@ -1,12 +1,17 @@
 import {useState} from "react";
 import {Container, Stack, Typography, Button} from "@mui/material";
 import PokemonList from "../components/PokemonList";
+import PokemonDetailsDrawer from "../components/PokemonDetailsDrawer";
 
 export default function PokedexPage() {
     const LIMIT = 20;
     const [offset, setOffset] = useState(0);
-    const handlePrev = () => setOffset((v) => Math.max(0, V - LIMIT));
-    const handleNext = () => setOffset((v) => V + LIMIT);
+    const [selected, setSelected] = useState("");
+
+    const handlePrev = () => setOffset((v) => Math.max(0, v - LIMIT));
+    const handleNext = () => setOffset((v) => v + LIMIT);
+    const handleClose = () => setSelected("");
+
     return (
         <Container sx={{py: 4}}>
             <Stack spacing={2}>
@@ -20,7 +25,16 @@ export default function PokedexPage() {
                         Next
                     </Button>
                 </Stack>
-                <PokemonList limit={LIMIT} offset={offset} />
+                <PokemonList
+                    limit={LIMIT}
+                    offset={offset}
+                    onSelect={setSelected}
+                />
+                <PokemonDetailsDrawer
+                    nameOrId = {selected}
+                    open = {Boolean(selected)}
+                    onClose = {handleClose}
+                    />
             </Stack>
         </Container>
     );

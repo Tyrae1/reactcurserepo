@@ -3,7 +3,7 @@ import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react";
 export const pokemonApi = createApi({
     reducerPath: "pokemonApi",
     baseQuery: fetchBaseQuery({
-        baseURL: "https://pokeapi.co/api/v2/",
+        baseUrl: "https://pokeapi.co/api/v2/",
     }),
     endpoints: (builder) => ({
         getPokemonList: builder.query({
@@ -12,10 +12,14 @@ export const pokemonApi = createApi({
         getPokemonByName: builder.query({
             query: (nameOrId) => `pokemon/${nameOrId}`,
         }),
+        getPokemonSpecies: builder.query({
+            query: (nameOrId) => `pokemon-species/${nameOrId}`,
+        }),
     }),
 });
 
 export const {
     useGetPokemonListQuery,
     useGetPokemonByNameQuery,
+    useGetPokemonSpeciesQuery,
 } = pokemonApi;
