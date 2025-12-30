@@ -40,9 +40,9 @@ export const chatsSlice = createSlice({
         chatRenamed(state, action: PayloadAction<{ id: string; title: string}>) {
             const {id, title} = action.payload;
             const now = new Date().toISOString();
-            chatsAdapter.updateOne(state, {id, changes: {title: title.trim(), updateAt: now}});
+            chatsAdapter.updateOne(state, {id, changes: {title: title.trim(), updatedAt: now}});
         },
-        chatTouched(state, action: payloadAction<{id: string}>) {
+        chatTouched(state, action: PayloadAction<{id: string}>) {
             const now = new Date().toISOString();
             chatsAdapter.updateOne(state, {id: action.payload.id, changes: {updatedAt: now}});
         },
